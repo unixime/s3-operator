@@ -28,8 +28,19 @@ type BucketSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Bucket. Edit bucket_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// Name of the bucket
+	Name string `json:"name"`
+
+	// Do nothing if the bucket or directory already exists.
+	IgnoreExisting bool `json:"ignoreExisting,omitempty"`
+
+	// The region in which to create the specified bucket.
+	// Has no effect if the specified ALIAS is a filesystem directory.
+	Region string `json:"region,omitempty"`
+
+	// Enables object locking on the specified bucket.
+	// Object locking requires, and therefore implies, enabling object versioning.
+	WithLock bool `json:"withLock,omitempty"`
 }
 
 // BucketStatus defines the observed state of Bucket.
