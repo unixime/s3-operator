@@ -49,6 +49,10 @@ type BucketReconciler struct {
 func (r *BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = logf.FromContext(ctx)
 
+	bucket := &s3v1beta1.Bucket{}
+
+	r.Get(ctx, req.NamespacedName, bucket)
+
 	// TODO(user): your logic here
 
 	return ctrl.Result{}, nil
@@ -60,4 +64,16 @@ func (r *BucketReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&s3v1beta1.Bucket{}).
 		Named("bucket").
 		Complete(r)
+}
+
+func (r *BucketReconciler) readBucketDefinition(ctx context.Context, req ctrl.Request) (*s3v1beta1.Bucket, error)  {
+
+	b := &s3v1beta1.Bucket{}
+
+	if err := r.Get(ctx, req.NamespacedName, b); err != nil {
+		return nil, err
+	}
+
+
+	return b, nil
 }

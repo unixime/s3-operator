@@ -46,6 +46,8 @@ var _ = Describe("Bucket Controller", func() {
 			By("creating the custom resource for the Kind Bucket")
 			err := k8sClient.Get(ctx, typeNamespacedName, bucket)
 			if err != nil && errors.IsNotFound(err) {
+
+				/*
 				resource := &s3v1beta1.Bucket{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      resourceName,
@@ -54,6 +56,8 @@ var _ = Describe("Bucket Controller", func() {
 					// TODO(user): Specify other spec details if needed.
 				}
 				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
+
+				 */
 			}
 		})
 
@@ -67,6 +71,59 @@ var _ = Describe("Bucket Controller", func() {
 			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
 		})
 		It("should successfully reconcile the resource", func() {
+
+			By("Create new resource")
+
+			resource := &s3v1beta1.Bucket{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      resourceName,
+					Namespace: "default",
+				},
+				Spec: s3v1beta1.BucketSpec{
+					Name: "Foo",
+					IgnoreExisting: true,
+					WithLock: false,
+				},
+				// TODO(user): Specify other spec details if needed.
+			}
+			Expect(k8sClient.Create(ctx, resource)).To(Succeed())
+
+			By("Reconciling the created resource")
+			controllerReconciler := &BucketReconciler{
+				Client: k8sClient,
+				Scheme: k8sClient.Scheme(),
+			}
+
+			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
+				NamespacedName: typeNamespacedName,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			// TODO(user): Add more specific assertions depending on your controller's reconciliation logic.
+			// Example: If you expect a certain status condition after reconciliation, verify it here.
+		})
+
+
+		It("should successfully reconcile the annotated resource", func() {
+
+			By("Create new resource")
+
+			resource := &s3v1beta1.Bucket{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      resourceName,
+					Namespace: "default",
+					Annotations: map[string]string{
+						"target": "garage",
+					},
+				},
+				Spec: s3v1beta1.BucketSpec{
+					Name: "Foo",
+					IgnoreExisting: true,
+					WithLock: false,
+				},
+				// TODO(user): Specify other spec details if needed.
+			}
+			Expect(k8sClient.Create(ctx, resource)).To(Succeed())
+
 			By("Reconciling the created resource")
 			controllerReconciler := &BucketReconciler{
 				Client: k8sClient,
