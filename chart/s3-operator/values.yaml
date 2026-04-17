@@ -1,0 +1,27 @@
+replicaCount: 1
+
+image:
+  repository: controller
+  tag: latest
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  name: controller-manager
+
+leaderElection:
+  enabled: true
+
+healthProbe:
+  bindAddress: ":8081"
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 128Mi
+  requests:
+    cpu: 10m
+    memory: 64Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

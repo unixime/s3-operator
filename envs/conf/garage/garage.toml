@@ -1,0 +1,39 @@
+# Garage configuration file
+# Docs: https://garagehq.deuxfleurs.fr/documentation/reference-manual/configuration/
+
+metadata_dir = "/var/lib/garage/meta"
+data_dir = "/var/lib/garage/data"
+
+# RPC bind address - must be at root level, before any [section]
+rpc_bind_addr = "0.0.0.0:3904"
+
+# RPC secret - shared token for cluster node authentication (32 bytes hex)
+# Generate your own with: openssl rand -hex 32
+rpc_secret = "9ee342daeb0eb69357c4ed5e7c2b2d8511720c81642aeb3086e68dfed11d7d79"
+
+# Garage cluster replication mode
+# "none"   = single node, no replication
+# 1, 2, 3  = number of replicas
+replication_factor = 1
+
+# Size of data blocks (default 1MB)
+block_size = 1048576
+
+[s3_api]
+s3_region = "garage"
+api_bind_addr = "0.0.0.0:3900"
+# Optionally set a root domain for virtual-hosted-style requests
+# root_domain = ".s3.example.com"
+
+[s3_web]
+bind_addr = "0.0.0.0:3902"
+root_domain = ".web.example.com"
+index = "index.html"
+
+[k2v_api]
+api_bind_addr = "0.0.0.0:3903"
+
+[admin]
+api_bind_addr = "0.0.0.0:3901"
+# Uncomment to protect the admin API with a bearer token
+# admin_token = "YOUR_STRONG_ADMIN_TOKEN_HERE"

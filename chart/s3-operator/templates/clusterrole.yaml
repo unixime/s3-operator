@@ -1,0 +1,33 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "s3-operator.fullname" . }}-manager-role
+  labels:
+    {{- include "s3-operator.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - s3.storage.io
+  resources:
+  - buckets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - s3.storage.io
+  resources:
+  - buckets/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - s3.storage.io
+  resources:
+  - buckets/status
+  verbs:
+  - get
+  - patch
+  - update

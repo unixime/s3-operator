@@ -18,19 +18,23 @@ package controller
 
 import (
 	"context"
+	"fmt"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	s3v1beta1 "s3-operator/api/v1beta1"
+	s3client "s3-operator/internal/client"
 )
 
 // BucketReconciler reconciles a Bucket object
 type BucketReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme    *runtime.Scheme
+	S3Clients map[string]s3client.S3Client
 }
 
 // +kubebuilder:rbac:groups=s3.storage.io,resources=buckets,verbs=get;list;watch;create;update;patch;delete
@@ -47,14 +51,31 @@ type BucketReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.21.0/pkg/reconcile
 func (r *BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = logf.FromContext(ctx)
+	log := logf.FromContext(ctx)
 
-	bucket := &s3v1beta1.Bucket{}
+	bucket, err := r.readBucketDefinition(ctx, req)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			log.Info("Bucket resource not found, ignoring since object must be deleted")
+			return ctrl.Result{}, nil
+		}
+		log.Error(err, "Failed to get Bucket")
+		return ctrl.Result{}, err
+	}
 
-	r.Get(ctx, req.NamespacedName, bucket)
+	impl := bucket.Annotations["s3/implementation"]
+	s3c := r.s3ClientForImpl(impl)
+	if s3c == nil {
+		log.Info("No S3 client configured for implementation, skipping", "implementation", impl)
+		return ctrl.Result{}, nil
+	}
 
-	// TODO(user): your logic here
+	if err := s3c.CreateBucket(ctx, bucket); err != nil {
+		log.Error(err, "Failed to create bucket", "bucket", bucket.Spec.Name, "implementation", impl)
+		return ctrl.Result{}, fmt.Errorf("creating bucket %q on %q: %w", bucket.Spec.Name, impl, err)
+	}
 
+	log.Info("Bucket reconciled successfully", "bucket", bucket.Spec.Name, "implementation", impl)
 	return ctrl.Result{}, nil
 }
 
@@ -66,14 +87,25 @@ func (r *BucketReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *BucketReconciler) readBucketDefinition(ctx context.Context, req ctrl.Request) (*s3v1beta1.Bucket, error)  {
+func (r *BucketReconciler) s3ClientForImpl(impl string) s3client.S3Client {
+	if r.S3Clients == nil {
+		return nil
+	}
+	switch impl {
+	case "garage", "minio", "rustfs":
+		return r.S3Clients[impl]
+	default:
+		return nil
+	}
+}
+
+func (r *BucketReconciler) readBucketDefinition(ctx context.Context, req ctrl.Request) (*s3v1beta1.Bucket, error) {
 
 	b := &s3v1beta1.Bucket{}
 
 	if err := r.Get(ctx, req.NamespacedName, b); err != nil {
 		return nil, err
 	}
-
 
 	return b, nil
 }

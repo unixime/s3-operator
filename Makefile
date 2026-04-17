@@ -197,6 +197,13 @@ build-installer: manifests generate kustomize ## Generate a consolidated YAML wi
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default > dist/install.yaml
 
+HELM_CHART_DIR ?= chart/s3-operator
+
+.PHONY: helm-chart
+helm-chart: manifests kustomize ## Generate/update the Helm chart CRDs from controller-gen output.
+	cp config/crd/bases/*.yaml $(HELM_CHART_DIR)/crds/
+	@echo "Helm chart updated at $(HELM_CHART_DIR)"
+
 ##@ Deployment
 
 ifndef ignore-not-found

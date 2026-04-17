@@ -48,16 +48,16 @@ var _ = Describe("Bucket Controller", func() {
 			if err != nil && errors.IsNotFound(err) {
 
 				/*
-				resource := &s3v1beta1.Bucket{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      resourceName,
-						Namespace: "default",
-					},
-					// TODO(user): Specify other spec details if needed.
-				}
-				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
+					resource := &s3v1beta1.Bucket{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      resourceName,
+							Namespace: "default",
+						},
+						// TODO(user): Specify other spec details if needed.
+					}
+					Expect(k8sClient.Create(ctx, resource)).To(Succeed())
 
-				 */
+				*/
 			}
 		})
 
@@ -80,9 +80,9 @@ var _ = Describe("Bucket Controller", func() {
 					Namespace: "default",
 				},
 				Spec: s3v1beta1.BucketSpec{
-					Name: "Foo",
+					Name:           "Foo",
 					IgnoreExisting: true,
-					WithLock: false,
+					WithLock:       false,
 				},
 				// TODO(user): Specify other spec details if needed.
 			}
@@ -102,7 +102,6 @@ var _ = Describe("Bucket Controller", func() {
 			// Example: If you expect a certain status condition after reconciliation, verify it here.
 		})
 
-
 		It("should successfully reconcile the annotated resource", func() {
 
 			By("Create new resource")
@@ -116,9 +115,9 @@ var _ = Describe("Bucket Controller", func() {
 					},
 				},
 				Spec: s3v1beta1.BucketSpec{
-					Name: "Foo",
+					Name:           "Foo",
 					IgnoreExisting: true,
-					WithLock: false,
+					WithLock:       false,
 				},
 				// TODO(user): Specify other spec details if needed.
 			}
